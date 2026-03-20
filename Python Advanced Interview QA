@@ -1,0 +1,465 @@
+1. Python 2 vs Python 3
+Python 3 is a complete redesign focused on consistency and Unicode support. The biggest difference is string handling—Python 2 treats strings as ASCII by default, while Python 3 uses Unicode (str) by default, which avoids encoding issues in global applications. Division behavior also changed (5/2 = 2 in Py2 vs 2.5 in Py3). Python 3 improved libraries, removed redundancy, and introduced features like async/await. Python 2 is now end-of-life, so all modern development uses Python 3. In interviews, emphasize performance improvements, better memory handling, and ecosystem support.
+________________________________________
+2. Python Memory Management
+Python uses automatic memory management with a combination of:
+•	Reference counting
+•	Garbage Collector (GC)
+Every object keeps a reference count; when it reaches zero, memory is freed immediately. However, reference counting cannot handle circular references, so Python uses a cyclic garbage collector to detect and clean them. Memory is managed in private heaps, and the Python memory manager allocates space efficiently. Interview tip: mention pymalloc allocator, which optimizes small object allocations. Also highlight tools like gc module and tracemalloc for debugging memory issues.
+________________________________________
+3. Global Interpreter Lock (GIL)
+The GIL is a mutex that ensures only one thread executes Python bytecode at a time. It simplifies memory management and avoids race conditions in CPython. However, it becomes a bottleneck for CPU-bound multithreading, limiting parallel execution. For I/O-bound tasks, threads still work well because GIL is released during I/O operations. To bypass GIL for CPU-heavy tasks, use:
+•	multiprocessing
+•	C extensions
+•	NumPy (internally optimized)
+In interviews, clearly state:
+👉 “GIL affects CPU-bound concurrency but not I/O-bound workloads significantly.”
+________________________________________
+4. Deep Copy vs Shallow Copy
+A shallow copy creates a new object but references the same nested objects. A deep copy creates a completely independent copy, including all nested objects.
+Example:
+•	Shallow → changes inside nested objects affect both copies
+•	Deep → completely isolated
+Use:
+•	copy.copy() → shallow
+•	copy.deepcopy() → deep
+Interview angle:
+Shallow copy is faster and memory-efficient but risky with mutable objects. Deep copy is safer but expensive. Understanding this is critical when dealing with complex data structures or caching systems.
+________________________________________
+5. Mutable vs Immutable Objects
+Mutable objects can be changed after creation (list, dict, set).
+Immutable objects cannot be changed (int, string, tuple).
+Example:
+x = [1, 2]
+x.append(3)  # mutable
+
+y = "hello"
+y = y + " world"  # new object created
+Why important:
+•	Immutable objects are thread-safe
+•	Used as dictionary keys (e.g., tuples)
+Interview insight:
+Python uses immutability for performance optimization and caching (interning). Also affects how variables behave when passed to functions.
+________________________________________
+6. Garbage Collection
+Python uses two mechanisms:
+1.	Reference counting (primary)
+2.	Generational garbage collection (secondary)
+The GC divides objects into 3 generations and cleans older ones less frequently. This improves performance because long-lived objects are less likely to be garbage.
+You can control GC:
+import gc
+gc.collect()
+Interview tip:
+Mention that GC handles circular references, which reference counting alone cannot. Also useful in debugging memory leaks in long-running systems.
+________________________________________
+7. Decorators
+Decorators are functions that modify the behavior of another function without changing its code.
+Example:
+def logger(func):
+    def wrapper():
+        print("Start")
+        func()
+        print("End")
+    return wrapper
+Used as:
+@logger
+def test():
+    print("Hello")
+Internally:
+test = logger(test)
+Use cases:
+•	Logging
+•	Authentication
+•	Caching
+Interview insight:
+Decorators rely on closures and higher-order functions. Advanced usage includes decorators with arguments and class decorators.
+________________________________________
+8. Generators vs Iterators
+Generators are a special type of iterator that yield values lazily using yield.
+Key differences:
+Generator	Iterator
+Uses yield	Uses __next__()
+Lazy execution	Manual implementation
+Memory efficient	More control
+Example:
+def gen():
+    yield 1
+    yield 2
+Generators are ideal for:
+•	Large datasets
+•	Streaming data
+Interview tip:
+Highlight lazy evaluation and memory efficiency, especially in big data processing.
+________________________________________
+9. Metaclasses
+A metaclass is a class of a class—it defines how classes behave.
+Example:
+class Meta(type):
+    pass
+
+class MyClass(metaclass=Meta):
+    pass
+Use cases:
+•	Enforcing coding rules
+•	Auto-registering classes
+•	Framework internals (Django ORM)
+Interview tip:
+Explain simply:
+👉 “Metaclasses control class creation just like classes control object creation.”
+Avoid overcomplicating unless asked deeper.
+________________________________________
+10. LEGB Rule (Scope)
+Python resolves variables using:
+1.	Local
+2.	Enclosing
+3.	Global
+4.	Built-in
+Example:
+x = 10
+
+def outer():
+    x = 20
+    def inner():
+        print(x)
+Output → 20 (Enclosing scope)
+Interview insight:
+Important for closures, decorators, and debugging variable conflicts.
+________________________________________
+11. Python Execution Flow
+Steps:
+1.	Source code → compiled to bytecode
+2.	Bytecode stored in .pyc
+3.	Executed by Python Virtual Machine (PVM)
+Python is interpreted but also compiled internally.
+Interview tip:
+Mention:
+•	Compilation step improves performance
+•	Bytecode is platform-independent
+________________________________________
+12. __new__ vs __init__
+•	__new__ → creates object
+•	__init__ → initializes object
+Example:
+class A:
+    def __new__(cls):
+        return super().__new__(cls)
+
+    def __init__(self):
+        print("init")
+Use __new__ for:
+•	Immutable objects
+•	Singleton pattern
+Interview insight:
+👉 “Object lifecycle starts with __new__, then __init__.”
+________________________________________
+13. Descriptors
+Descriptors define behavior for attribute access using:
+•	__get__
+•	__set__
+•	__delete__
+Example:
+Used in ORMs, properties, validation systems.
+Interview tip:
+Explain simply:
+👉 “Descriptors control how attributes are accessed and modified.”
+________________________________________
+14. Method Resolution Order (MRO)
+MRO defines the order in which Python searches for methods in inheritance.
+Python uses C3 Linearization.
+Check MRO:
+ClassName.__mro__
+Important for:
+•	Multiple inheritance
+•	Avoiding conflicts
+________________________________________
+15. Diamond Problem
+Occurs in multiple inheritance when two classes inherit from the same base class.
+Python solves this using MRO (C3 linearization).
+Interview tip:
+👉 Python avoids ambiguity by ensuring a consistent lookup order.
+________________________________________
+16. staticmethod vs classmethod vs instance method
+Type	Access
+Instance	self
+Class	cls
+Static	no access
+Use:
+•	static → utility
+•	class → factory methods
+________________________________________
+17. __slots__
+__slots__ restricts attributes and saves memory.
+class A:
+    __slots__ = ['x']
+Benefits:
+•	Faster access
+•	Less memory
+Used in:
+•	High-performance systems
+________________________________________
+18. Bytecode & .pyc
+Python compiles code into bytecode (.pyc) stored in __pycache__.
+Benefits:
+•	Faster execution
+•	Reuse compiled code
+________________________________________
+19. is vs ==
+•	== → value comparison
+•	is → memory reference
+Example:
+a = [1]
+b = [1]
+a == b  # True
+a is b  # False
+________________________________________
+20. @property
+Used to define getters/setters in a Pythonic way.
+class A:
+    @property
+    def value(self):
+        return self._value
+Benefits:
+•	Encapsulation
+•	Cleaner syntax
+________________________________________
+________________________________________
+________________________________________
+21. Threading vs Multiprocessing vs Asyncio
+These are three ways to achieve concurrency in Python:
+•	Threading: Uses multiple threads within a process. Limited by the GIL, so not ideal for CPU-bound tasks but good for I/O-bound tasks (e.g., API calls).
+•	Multiprocessing: Uses separate processes with independent memory. Bypasses GIL, ideal for CPU-intensive tasks.
+•	Asyncio: Uses a single-threaded event loop with coroutines. Best for high-performance I/O operations like handling thousands of network requests.
+Interview tip:
+👉 Use threading for lightweight I/O, multiprocessing for CPU-heavy tasks, asyncio for scalable async systems.
+________________________________________
+22. Parallel Processing with Multiprocessing
+Multiprocessing creates separate processes, each with its own Python interpreter and memory space. This avoids the GIL, allowing true parallel execution on multiple CPU cores.
+Example use cases:
+•	Data processing
+•	Image/video processing
+•	Machine learning workloads
+Python provides multiprocessing.Pool for easy parallel execution.
+Interview insight:
+Although powerful, multiprocessing has overhead due to inter-process communication (IPC) and memory duplication, so it should be used carefully.
+________________________________________
+23. Async/Await in Python
+async/await is used to write asynchronous code in a clean, readable way. It is built on top of coroutines and the event loop.
+Example:
+async def fetch():
+    return "data"
+Key idea:
+•	async defines coroutine
+•	await pauses execution until result is ready
+Used in frameworks like FastAPI and aiohttp.
+Interview insight:
+Async improves throughput, not raw execution speed, making it ideal for I/O-heavy applications like APIs.
+________________________________________
+24. I/O Bound vs CPU Bound Tasks
+•	I/O-bound tasks: Spend time waiting (network, disk). Example: API calls, DB queries.
+•	CPU-bound tasks: Require heavy computation (image processing, ML).
+Solution mapping:
+•	I/O-bound → threading / asyncio
+•	CPU-bound → multiprocessing
+Interview tip:
+👉 Choosing the wrong model can severely degrade performance.
+________________________________________
+25. Handling Concurrent API Calls
+Approaches:
+1.	ThreadPoolExecutor
+2.	Asyncio with aiohttp
+3.	Multiprocessing (rare)
+Best practice:
+Use asyncio for high concurrency.
+Example idea:
+•	Fire multiple API calls with asyncio.gather()
+Interview insight:
+Mention:
+•	Rate limiting
+•	Retry mechanisms
+•	Circuit breakers (important in real systems)
+________________________________________
+26. Coroutines
+Coroutines are functions that can pause and resume execution using yield or await.
+They allow:
+•	Non-blocking execution
+•	Efficient multitasking
+Difference:
+•	Generators → yield values
+•	Coroutines → manage execution flow
+Modern Python uses async/await instead of generator-based coroutines.
+________________________________________
+27. ThreadPoolExecutor vs ProcessPoolExecutor
+Feature	ThreadPool	ProcessPool
+Best for	I/O tasks	CPU tasks
+GIL	Affected	Not affected
+Overhead	Low	High
+Interview tip:
+👉 Thread pool is lightweight, process pool is powerful but expensive.
+________________________________________
+28. Race Conditions
+Race condition occurs when multiple threads modify shared data simultaneously, causing unpredictable results.
+Solution:
+•	Locks (threading.Lock)
+•	Semaphores
+•	Atomic operations
+Interview insight:
+👉 Always protect shared resources in concurrent systems.
+________________________________________
+29. Event Loop in Asyncio
+The event loop is the core of asyncio. It:
+•	Schedules tasks
+•	Executes coroutines
+•	Handles I/O events
+Think of it as a task manager.
+Interview tip:
+👉 Only one event loop runs per thread, managing thousands of tasks efficiently.
+________________________________________
+30. When to Use Celery / Message Queues
+Used for background processing.
+Examples:
+•	Email sending
+•	Video processing
+•	Report generation
+Stack:
+•	Celery + Redis/RabbitMQ
+Interview insight:
+👉 Decouples heavy tasks from request-response cycle.
+________________________________________
+Data Structures & Performance
+________________________________________
+31. Time Complexity of Python Data Structures
+Important complexities:
+•	List → O(1) append, O(n) search
+•	Dict → O(1) lookup
+•	Set → O(1) lookup
+Interview tip:
+👉 Python dict is highly optimized using hashing.
+________________________________________
+32. List vs Tuple
+List	Tuple
+Mutable	Immutable
+Slower	Faster
+More memory	Less memory
+Use tuple for:
+•	Fixed data
+•	Dictionary keys
+________________________________________
+33. Set vs Dictionary
+•	Set → stores unique values
+•	Dict → key-value pairs
+Both use hashing internally.
+________________________________________
+34. Dictionary Hashing
+Python dictionaries use hash tables.
+Process:
+1.	Compute hash
+2.	Map to index
+3.	Handle collisions (open addressing)
+Interview insight:
+👉 Hash collisions are rare but handled efficiently.
+________________________________________
+35. Optimizing Large Dataset Processing
+Techniques:
+•	Generators (lazy loading)
+•	Chunk processing
+•	Multiprocessing
+•	Using libraries like Pandas/Dask
+________________________________________
+Web Development
+________________________________________
+36. Django vs Flask
+•	Django → full framework (ORM, auth, admin)
+•	Flask → lightweight, flexible
+Interview tip:
+👉 Use Django for large apps, Flask for microservices.
+________________________________________
+37. WSGI vs ASGI
+•	WSGI → synchronous (Django)
+•	ASGI → asynchronous (FastAPI)
+ASGI supports:
+•	WebSockets
+•	Async APIs
+________________________________________
+38. Django ORM Internals
+Django ORM converts Python code into SQL queries using querysets.
+Lazy execution:
+Query runs only when data is accessed.
+________________________________________
+39. Authentication in Python APIs
+Methods:
+•	JWT
+•	OAuth
+•	Session-based
+Best practice:
+•	Use token-based authentication for APIs.
+________________________________________
+40. API Performance Optimization
+Techniques:
+•	Caching (Redis)
+•	Pagination
+•	Async APIs
+•	DB indexing
+________________________________________
+System Design
+________________________________________
+41. High-Scale Microservices Design
+Key components:
+•	API Gateway
+•	Load balancer
+•	Service discovery
+•	Database per service
+________________________________________
+42. Caching in Python
+Tools:
+•	Redis
+•	Memcached
+Use cases:
+•	Reduce DB load
+•	Improve latency
+________________________________________
+43. Rate Limiter Design
+Techniques:
+•	Token bucket
+•	Leaky bucket
+Used for:
+•	API protection
+________________________________________
+44. Background Job Processing
+Tools:
+•	Celery
+•	Kafka
+________________________________________
+45. Kafka Message Processing
+Steps:
+•	Consume messages
+•	Process asynchronously
+•	Commit offsets
+________________________________________
+Real-World Problems
+________________________________________
+46. Memory Leaks Detection
+Tools:
+•	tracemalloc
+•	objgraph
+________________________________________
+47. Performance Profiling
+Tools:
+•	cProfile
+•	line_profiler
+________________________________________
+48. Large File Processing
+Use:
+•	Streaming
+•	Generators
+________________________________________
+49. Secure API Authentication
+Best practices:
+•	HTTPS
+•	JWT
+•	Rate limiting
+________________________________________
+50. Containerization (Docker + Kubernetes)
+Steps:
+•	Write Dockerfile
+•	Use Kubernetes for scaling
+
